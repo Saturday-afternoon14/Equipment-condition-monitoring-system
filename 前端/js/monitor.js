@@ -1,29 +1,34 @@
 var taskSizeChart1 = echarts.init(document.getElementById('taskSize1'));
 var taskSizeChart2 = echarts.init(document.getElementById('taskSize2'));
 var startTime = new Date();
-
 var todaySyncedNum = 0;
 var todayNoSyncNum = 0;
 var delayNum = 0;
 var names = [];
 var values = [];
+var data2=[];
 var tags = [];
 var i = 0;
+var names2=[];
+var tags2=[];
+// 初始化数组用于存储数据
 $(function () {
     $('input').bind('input propertychange', function () {
         $('.commonTable tbody tr').hide()
             .filter(":contains('" + ($(this).val()) + "')").show();
     });
 
-    $("#refreshBtn").click(function () {
+    $("#refreshBtn").off('click').on('click', function () {
         initTable();
     });
 
-    initTable();
+    //initTable();
     setInterval(initTable, 1000);
     setInterval(tick, 1000);
-    taskSizeTj2();
+    
 });
+
+
 
 function tick() {
     var today = new Date();
@@ -36,7 +41,35 @@ function tick() {
     var sec = Math.floor(t / 1000 % 60);
     $("#runTimeTj").html(day + " 天 " + hour + " 小时 " + min + " 分 " + sec + " 秒");
 }
-
+function showLocale(objD) {
+    var str, colorhead, colorfoot;
+    var yy = objD.getYear();
+    if (yy < 1900) yy = yy + 1900;
+    var MM = objD.getMonth() + 1;
+    if (MM < 10) MM = '0' + MM;
+    var dd = objD.getDate();
+    if (dd < 10) dd = '0' + dd;
+    var hh = objD.getHours();
+    if (hh < 10) hh = '0' + hh;
+    var mm = objD.getMinutes();
+    if (mm < 10) mm = '0' + mm;
+    var ss = objD.getSeconds();
+    if (ss < 10) ss = '0' + ss;
+    var ww = objD.getDay();
+    if (ww == 0) colorhead = "<font color=\"#ffffff\">";
+    if (ww > 0 && ww < 6) colorhead = "<font color=\"#ffffff\">";
+    if (ww == 6) colorhead = "<font color=\"#ffffff\">";
+    if (ww == 0) ww = "星期日";
+    if (ww == 1) ww = "星期一";
+    if (ww == 2) ww = "星期二";
+    if (ww == 3) ww = "星期三";
+    if (ww == 4) ww = "星期四";
+    if (ww == 5) ww = "星期五";
+    if (ww == 6) ww = "星期六";
+    colorfoot = "</font>"
+    str = colorhead + yy + "-" + MM + "-" + dd + " " + hh + ":" + mm + ":" + ss + "  " + ww + colorfoot;
+    return (str);
+}
 function syncTj() {
     // $("#addTj").html(Math.ceil(Math.random() * 10) + " ms");
     // $("#updateTj").html(Math.ceil(Math.random() * 10) + " ms");
@@ -104,7 +137,7 @@ function taskSizeTj() {
         yAxis: [
             {
                 min: 0,  // 设置最小值
-                max: 600,  // 设置最大值
+                max: 500,  // 设置最大值
                 type: 'value',
                 axisLabel: {
                     show: true,
@@ -181,22 +214,6 @@ function taskSizeTj() {
 
 function taskSizeTj2() {
 
-    var data2 = []; // 声明一个空数组来存储数据
-    var names2 = [];
-    // 获取当前时间，作为初始时间
-    var currentTime = new Date();
-
-    // 生成100个时间数据
-    for (var i = 0; i < 30; i++) {
-        // 每次循环递减一秒
-        currentTime.setSeconds(currentTime.getSeconds() - 1);
-        // 将时间格式化为字符串，这里简单地使用了时间的字符串表示
-        var formattedTime = currentTime.toLocaleTimeString();
-        // 添加到横坐标数组中
-        names2.push(formattedTime);
-        // 假设随机数据范围在 0 到 10000 之间
-        data2.push(Math.floor(Math.random() * 10000));
-    }
     var option = {
         color: ['#00b3ac'],
         legend: {
@@ -208,6 +225,17 @@ function taskSizeTj2() {
             trigger: 'axis',
             axisPointer: {
                 type: 'shadow'
+            },
+            formatter: function (params) {
+                var dataIndex = params[0].dataIndex; // 获取当前悬停点的数据索引
+                var tag = tags2[dataIndex]; // 假设 tags 数组包含了与数据点对应的标签
+                var xValue = names2[dataIndex]; // 获取 x 轴的值
+                var yValue = data2[dataIndex]; // 获取 y 轴的值，这里假设是二维数据
+
+                // 格式化 tooltip 显示的内容
+                return 'Tag: ' + tag + '<br/>' + // 显示标签
+                    'X: ' + xValue + '<br/>' + // 显示 x 轴数据
+                    'Y: ' + yValue; // 显示 y 轴数据
             }
         },
         xAxis: [
@@ -230,7 +258,7 @@ function taskSizeTj2() {
         yAxis: [
             {
                 min: 0,  // 设置最小值
-                max: 10000,  // 设置最大值
+                max: 500,  // 设置最大值
                 type: 'value',
                 axisLabel: {
                     show: true,
@@ -245,20 +273,103 @@ function taskSizeTj2() {
                 name: '数据量（条）',
                 type: 'line',
                 smooth: true,
-                barWidth: '60%',
-                data: data2
+                data: data2,
+                symbolSize: 8, // 设置数据点的大小为 8
+                itemStyle: {
+                    normal: {
+                        color: function (params) {
+                            // 获取当前数据点的索引
+                            var dataIndex = params.dataIndex;
+                            // 根据 tags 数组的值来决定颜色
+                            return tags[dataIndex] == '[9]' ? 'green' : 'red';
+                        },
+                        lineStyle: {
+                            color: 'white' // 设置折线的颜色为黑色
+                        }
+                    }
+                }
             }
         ]
     };
+    
+ 
 
 
-    taskSizeChart2.setOption(option);
+document.getElementById('queryButton').addEventListener('click', () => {
 
 
 
+    // 获取开始年、月、日和小时的值
+    const startYear = document.getElementById('startYear').value;
+    const startMonth = document.getElementById('startMonth').value;
+    const startDay = document.getElementById('startDay').value;
+    const startHour = document.getElementById('startHour').value;
+
+    // 获取结束年、月、日和小时的值
+    const endYear = document.getElementById('endYear').value;
+    const endMonth = document.getElementById('endMonth').value;
+    const endDay = document.getElementById('endDay').value;
+    const endHour = document.getElementById('endHour').value;
+
+    const starttime = `${startYear}-${startMonth < 10 ? '0' + startMonth : startMonth}-${startDay < 10 ? '0' + startDay : startDay}T${startHour < 10 ? '0' + startHour : startHour}:00:00Z`;
+    const endtime = `${endYear}-${endMonth < 10 ? '0' + endMonth : endMonth}-${endDay < 10 ? '0' + endDay : endDay}T${endHour < 10 ? '0' + endHour : endHour}:00:00Z`;
+
+    // 构建 API 请求的 URL
+    const url = `http://localhost:40000/orderdata?starttime=${starttime}&endtime=${endtime}`;
+
+
+   
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // 初始化三个数组
+            const timesArray = [];
+            const dataArray = [];
+            const tagsArray = [];
+
+            data2.length=0;
+            tags2.length=0;
+            names2.length=0;
+
+
+            data.forEach(item => {
+                // 分别将时间、数据、标签添加到对应的数组中
+                timesArray.push(item.time);
+                dataArray.push(item.data*10000);
+                tagsArray.push(item.tag);
+            });
+
+            data2.push(...dataArray);
+            names2.push(...timesArray);
+            tags2.push(...tagsArray);
+            
+            // 打印或进一步处理这三个数组
+            console.log("Times Array:", timesArray);
+            console.log("Data Array:", dataArray);
+            console.log("Tags Array:", tagsArray);
+            console.log("dd:", data2);
+            console.log("tags:", tags2);
+        })
+        .catch(error => {
+            console.error('There was a problem with the fetch operation:', error);
+        });
+});
+
+
+taskSizeChart2.hideLoading();
+taskSizeChart2.setOption(option);
 
 
 }
+
+
+
+
 
 function timestampToTime(fmt, timestamp) {
     var date = new Date(timestamp);
@@ -297,290 +408,5 @@ function mySort(data) {
 function initTable() {
     taskSizeTj();
     syncTj();
-    var HTML = "<thead>\n" +
-        "        <td title=\"序号\">序号</td>\n" +
-        "        <td title=\"城市\">城市</td>\n" +
-        "        <td title=\"总生产量\">总生产量</td>\n" +
-        "        <td title=\"总消费量\">总消费量</td>\n" +
-        "        <td title=\"今日消费\">今日消费</td>\n" +
-        "        <td title=\"今日消费异常\">今日消费异常</td>\n" +
-        "        <td title=\"待消费\">待消费</td>\n" +
-        "        <td title=\"最近一条数据同步时间\">最近数据同步时间</td>\n" +
-        "        <td title=\"状态\">状态</td>\n" +
-        "        <td title=\"最新监控刷新时间\">刷新时间</td>\n" +
-        "        </thead>\n" +
-        "        <tbody>\n";
-    var data = getData();
-    var myData = mySort(data);
-    $(myData).each(function (index, ele) {
-        HTML += "<tr>\n" +
-            "            <td>" + (index + 1) + "</td>\n" +
-            "            <td>" + ele['name'] + "</td>\n" +
-            "            <td>" + ele['total'] + "</td>\n" +
-            "            <td>" + ele['offset'] + "</td>\n" +
-            "            <td><span style='color: #00cc00'>" + ele['todayOffset'] + "</span></td>\n" +
-            "            <td>" + ele['todayConsumeError'] + "</td>\n" +
-            "            <td>" + ele['overstock'] + "</td>\n" +
-            "            <td>" + timestampToTime("YYYY-mm-dd HH:MM:SS", ele['syncDate']) + "</td>\n" +
-            "            <td><span class=\"btn btn-small\" style=\"width: 80px\" >正常</span></td>\n" +
-            "            <td><span style='color: #00cc00;'>" + timestampToTime("YYYY-mm-dd HH:MM:SS", ele['date']) + "</span></td>\n";
-    });
-    HTML += "</tbody>";
-    $('.commonTable').html(HTML);
-
-    var todaySynced = Math.ceil(Math.random() * 10000) + 500 + todaySyncedNum;
-    var todayNoSync = Math.ceil(Math.random() * 30) + 16;
-    var delay = parseFloat(Math.ceil(Math.random() * 3)).toFixed(1);
-
-    $("#todaySyncSpan").numberRockInt({
-        initNumber: todaySyncedNum,
-        lastNumber: todaySynced,
-        duration: 5000,
-        step: 8
-    });
-
-    $("#todayNoSyncSpan").numberRockInt({
-        initNumber: todayNoSyncNum,
-        lastNumber: todayNoSync,
-        step: 5
-    });
-
-    $("#syncDelaySpan").numberRockFloat({
-        initNumber: delayNum,
-        lastNumber: delay,
-        fixedSize: 1,
-        easing: "linear"
-    });
-
-    todaySyncedNum = todaySynced;
-    todayNoSyncNum = todayNoSync;
-    delayNum = delay;
-
-    $("#syncStateSpan").html("<font color='#00cc00'>正常</font>");
-
-    $('.commonTable tbody tr').hide()
-        .filter(":contains('" + ($("#searchText").val()) + "')").show();
-
-}
-
-function showLocale(objD) {
-    var str, colorhead, colorfoot;
-    var yy = objD.getYear();
-    if (yy < 1900) yy = yy + 1900;
-    var MM = objD.getMonth() + 1;
-    if (MM < 10) MM = '0' + MM;
-    var dd = objD.getDate();
-    if (dd < 10) dd = '0' + dd;
-    var hh = objD.getHours();
-    if (hh < 10) hh = '0' + hh;
-    var mm = objD.getMinutes();
-    if (mm < 10) mm = '0' + mm;
-    var ss = objD.getSeconds();
-    if (ss < 10) ss = '0' + ss;
-    var ww = objD.getDay();
-    if (ww == 0) colorhead = "<font color=\"#ffffff\">";
-    if (ww > 0 && ww < 6) colorhead = "<font color=\"#ffffff\">";
-    if (ww == 6) colorhead = "<font color=\"#ffffff\">";
-    if (ww == 0) ww = "星期日";
-    if (ww == 1) ww = "星期一";
-    if (ww == 2) ww = "星期二";
-    if (ww == 3) ww = "星期三";
-    if (ww == 4) ww = "星期四";
-    if (ww == 5) ww = "星期五";
-    if (ww == 6) ww = "星期六";
-    colorfoot = "</font>"
-    str = colorhead + yy + "-" + MM + "-" + dd + " " + hh + ":" + mm + ":" + ss + "  " + ww + colorfoot;
-    return (str);
-}
-
-function hideBugBtn() {
-    $("#bugBtn").hide();
-}
-
-function getData() {
-    var _temp = Math.ceil(Math.random() * 290000);
-    return {
-        "flag": true,
-        "北京": {
-            "status": true,
-            "total": Math.ceil(Math.random() * 9500000),
-            "offset": Math.ceil(Math.random() * 940000),
-            "overstock": Math.ceil(Math.random() * 10),
-            "todayOffset": Math.ceil(Math.random() * 500),
-            "todayConsumeError": 0,
-            "syncDate": 1608175795148,
-            "date": 1608186111190,
-            "startDate": 1608175795148,
-            "messge": null
-        },
-        "郑州": {
-            "status": true,
-            "total": Math.ceil(Math.random() * 9500000),
-            "offset": Math.ceil(Math.random() * 940000),
-            "overstock": Math.ceil(Math.random() * 10),
-            "todayOffset": Math.ceil(Math.random() * 500),
-            "todayConsumeError": 0,
-            "syncDate": 1608175807331,
-            "date": 1608186123476,
-            "startDate": 1608175807331,
-            "messge": null
-        },
-        "武汉": {
-            "status": true,
-            "total": Math.ceil(Math.random() * 9500000),
-            "offset": Math.ceil(Math.random() * 940000),
-            "overstock": Math.ceil(Math.random() * 10),
-            "todayOffset": Math.ceil(Math.random() * 500),
-            "todayConsumeError": 0,
-            "syncDate": 1608175805062,
-            "date": 1608186121035,
-            "startDate": 1608175805062,
-            "messge": null
-        },
-        "乌鲁木齐": {
-            "status": true,
-            "total": Math.ceil(Math.random() * 9500000),
-            "offset": Math.ceil(Math.random() * 940000),
-            "overstock": 0,
-            "todayOffset": Math.ceil(Math.random() * 500),
-            "todayConsumeError": 0,
-            "syncDate": 1608175805946,
-            "date": 1608186121104,
-            "startDate": 1608175805946,
-            "messge": null
-        },
-        "哈尔滨": {
-            "status": true,
-            "total": Math.ceil(Math.random() * 9500000),
-            "offset": Math.ceil(Math.random() * 940000),
-            "overstock": Math.ceil(Math.random() * 10),
-            "todayOffset": Math.ceil(Math.random() * 500),
-            "todayConsumeError": 0,
-            "syncDate": 1608175797293,
-            "date": 1608186111590,
-            "startDate": 1608175797293,
-            "messge": null
-        },
-        "广州": {
-            "status": true,
-            "total": Math.ceil(Math.random() * 9500000),
-            "offset": Math.ceil(Math.random() * 940000),
-            "overstock": Math.ceil(Math.random() * 10),
-            "todayOffset": Math.ceil(Math.random() * 500),
-            "todayConsumeError": 0,
-            "syncDate": 1608175796386,
-            "date": 1608186112653,
-            "startDate": 1608175796386,
-            "messge": null
-        },
-        "济南": {
-            "status": true,
-            "total": Math.ceil(Math.random() * 9500000),
-            "offset": Math.ceil(Math.random() * 940000),
-            "overstock": Math.ceil(Math.random() * 10),
-            "todayOffset": Math.ceil(Math.random() * 500),
-            "todayConsumeError": 0,
-            "syncDate": 1608175798776,
-            "date": 1608186113376,
-            "startDate": 1608175798776,
-            "messge": null
-        },
-        "南宁": {
-            "status": true,
-            "total": Math.ceil(Math.random() * 9500000),
-            "offset": Math.ceil(Math.random() * 940000),
-            "overstock": Math.ceil(Math.random() * 10),
-            "todayOffset": Math.ceil(Math.random() * 500),
-            "todayConsumeError": 0,
-            "syncDate": 1608175801541,
-            "date": 1608186117416,
-            "startDate": 1608175801541,
-            "messge": null
-        },
-        "西安": {
-            "status": true,
-            "total": Math.ceil(Math.random() * 9500000),
-            "offset": Math.ceil(Math.random() * 940000),
-            "overstock": Math.ceil(Math.random() * 10),
-            "todayOffset": Math.ceil(Math.random() * 500),
-            "todayConsumeError": 0,
-            "syncDate": 1608175806458,
-            "date": 1608186120973,
-            "startDate": 1608175806458,
-            "messge": null
-        },
-        "呼和浩特": {
-            "status": true,
-            "total": Math.ceil(Math.random() * 9500000),
-            "offset": Math.ceil(Math.random() * 940000),
-            "overstock": Math.ceil(Math.random() * 10),
-            "todayOffset": Math.ceil(Math.random() * 500),
-            "todayConsumeError": 0,
-            "syncDate": 1608175797815,
-            "date": 1608186111654,
-            "startDate": 1608175797815,
-            "messge": null
-        },
-        "太原": {
-            "status": true,
-            "total": Math.ceil(Math.random() * 9500000),
-            "offset": Math.ceil(Math.random() * 940000),
-            "overstock": Math.ceil(Math.random() * 10),
-            "todayOffset": Math.ceil(Math.random() * 500),
-            "todayConsumeError": 0,
-            "syncDate": 1608175804551,
-            "date": 1608186120987,
-            "startDate": 1608175804551,
-            "messge": null
-        },
-        "沈阳": {
-            "status": true,
-            "total": Math.ceil(Math.random() * 9500000),
-            "offset": Math.ceil(Math.random() * 940000),
-            "overstock": Math.ceil(Math.random() * 10),
-            "todayOffset": Math.ceil(Math.random() * 500),
-            "todayConsumeError": 0,
-            "syncDate": 1608175803840,
-            "date": 1608186119489,
-            "startDate": 1608175803840,
-            "messge": null
-        },
-        "南昌": {
-            "status": true,
-            "total": Math.ceil(Math.random() * 9500000),
-            "offset": Math.ceil(Math.random() * 940000),
-            "overstock": Math.ceil(Math.random() * 10),
-            "todayOffset": Math.ceil(Math.random() * 500),
-            "todayConsumeError": 0,
-            "syncDate": 1608175800856,
-            "date": 1608186118199,
-            "startDate": 1608175800856,
-            "messge": null
-        },
-        "上海": {
-            "status": true,
-            "total": Math.ceil(Math.random() * 9500000),
-            "offset": Math.ceil(Math.random() * 940000),
-            "overstock": Math.ceil(Math.random() * 10),
-            "todayOffset": Math.ceil(Math.random() * 500),
-            "todayConsumeError": 0,
-            "syncDate": 1608175802935,
-            "date": 1608186117231,
-            "startDate": 1608175802935,
-            "messge": null
-        },
-        "成都": {
-            "status": true,
-            "total": Math.ceil(Math.random() * 9500000),
-            "offset": Math.ceil(Math.random() * 940000),
-            "overstock": Math.ceil(Math.random() * 10),
-            "todayOffset": Math.ceil(Math.random() * 500),
-            "todayConsumeError": 0,
-            "syncDate": 1608175795859,
-            "date": 1608186111374,
-            "startDate": 1608175795859,
-            "messge": null
-        },
-        "delay": 0
-    };
+    taskSizeTj2();
 }

@@ -28,7 +28,7 @@ public class connectDatabase {
 
     }
 
-    public void insertPoint(String db, String measurement, float data,String tag){
+    public void insertPoint(String db, String measurement, float data,String tag,long time){
         influxDB.setDatabase(db);
         // 本地时间
         ZonedDateTime localDateTime = ZonedDateTime.now(ZoneId.of("Asia/Shanghai"));
@@ -40,7 +40,7 @@ public class connectDatabase {
                 .tag("Device_number","001")
                 .addField("state",tag)
                 .addField("data", data)
-                .time(utcTimestamp, TimeUnit.MILLISECONDS)
+                .time(time, TimeUnit.MILLISECONDS)
                 .build();
         influxDB.write(point);
     }

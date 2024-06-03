@@ -45,11 +45,7 @@ public class SimpleServer {
 
                         double average = calculator.calculateAverage(result);
 
-
-
                         //System.out.println(result);
-
-
 
                         Thread.sleep(1000);
                         out.println(result);
@@ -57,13 +53,13 @@ public class SimpleServer {
 
                         inputLine = in.readLine();
 
-                        getdata.insertPoint("history","testdata", (float) average,inputLine);
+                        getdata.insertPoint("history","testdata", (float) average,inputLine,System.currentTimeMillis());
 
                         //Thread.sleep(1000);
                         if(Objects.equals(inputLine, "[9]")) {
-                            getdata.insertPoint("history", "Normal_data", (float) average,"[9]");
+                            getdata.insertPoint("history", "Normal_data", (float) average,"[9]",System.currentTimeMillis());
                         }else{
-                            getdata.insertPoint("history", "Anomalous_data", (float) average,inputLine);
+                            getdata.insertPoint("history", "Anomalous_data", (float) average,inputLine,System.currentTimeMillis());
                         }
 
                         System.out.println("收到客户端消息: " + inputLine);

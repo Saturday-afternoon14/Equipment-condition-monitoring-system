@@ -87,32 +87,37 @@ app.get('/lastdata', (req, res) => {
 
 
 app.get('/orderdata', (req, res) => {
-    //获取参数
+    // 获取查询参数：开始时间和结束时间
     const starttime = req.query.starttime;
-    const endtime = rep.query.endtime;
-
-    if (!sensorName) {
-        // 如果没有提供 sensorName 参数，返回错误响应
-        return res.status(400).json({ error: 'Missing sensorName parameter' });
+    const endtime = req.query.endtime;
+    // const starttime = '2024-05-01T00:00:00';
+    // const endtime = '2024-05-12T23:59:59';
+    // 检查是否提供了开始时间和结束时间参数
+    if (!starttime || !endtime) {
+        return res.status(400).json({ error: 'Missing starttime or endtime parameters' });
     }
 
-
     // 查询数据库获取数据
-    influx.query('select * from testdata where time>=\'"${starttime}"\' and time<=\'"${endtime}"\' ')
+    influx.query(`SELECT * FROM testdata WHERE time >= '${starttime}' AND time <= '${endtime}'`)
         .then(results => {
-            // 提取所有的 last_data 值
-            const orderDataValues = results.groupRows.reduce((acc, groupRow) => {
-                // 遍历每个分组中的行
-                groupRow.rows.forEach(row => {
-                    // 提取 last_data 值
-                    if (row.data !== undefined) {
-                        acc.push(row.data);
-                    }
-                });
-                return acc;
-            }, []); // 初始化累加器为一个空数组
+
+            // 提取所有的数据值
+            const orderDataValues = results.map(result => {
+                if(result.state!=null){
+                    return {
+                        time: result.time,
+                        data: result.data,
+                        tag: result.state     };
+                }else if(result.state_1!=null){
+                    return {
+                        time: result.time,
+                        data: result.data,
+                        tag: result.state_1     };
+                }
+            });
 
             res.json(orderDataValues);
+
         })
         .catch(error => {
             console.error('Error fetching data from InfluxDB', error);
@@ -123,8 +128,7 @@ app.get('/orderdata', (req, res) => {
 
 
 
-
-// 启动服务器，监听端口
+// 启动服务器，监听端口0
 const port = 40000; // 你可以根据需要修改端口号
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);

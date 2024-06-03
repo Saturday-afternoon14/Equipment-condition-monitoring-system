@@ -68,25 +68,14 @@ public class textTest {
 
 
     @Test
-    public void testInsert(){
+    public void testshowdata(){
         influxDB.setDatabase("history");
-        //创建point
-        Point point = Point.measurement("actual")
-                .tag("id", "11")
-                .tag("origin", "master")
-                .addField("wind", 23.23)
-                .addField("power", 11.11)
-                .addField("cpu", 110)
-                .build();
-        //influxDB.write(point);
-
-
-
 
         QueryResult query = influxDB.query(new Query("select * from testdata"));
-        System.out.println(query);
+
         //批量插入,最多1000条
         //BatchPoints batchPoints = BatchPoints.builder().points(point, point).build();
+
         List<QueryResult.Result> results = query.getResults();
         for (QueryResult.Result result : results) {
             List<QueryResult.Series> series = result.getSeries();
